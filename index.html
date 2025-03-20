@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Signup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(to right, #183b01, #1f1c2c);
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            text-align: center;
+            width: 350px;
+            color: white;
+        }
+        
+        h2 {
+            margin-bottom: 15px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 16px;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }        
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #ffffff;
+            color: rgb(7, 0, 0);
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }s
+
+        button:hover {
+            background: #acfcb0;
+        }
+
+        .link {
+            color: white;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 14px;
+            margin-top: 10px;
+            display: block;
+        }
+
+        .error {
+            color: yellow;
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Signup Form -->
+        <div id="signup-form">
+            <h2>Create Account</h2>
+            <input type="text" id="signup-username" placeholder="New Username">
+            <input type="password" id="signup-password" placeholder="New Password">
+            <button onclick="registerUser()">Sign Up</button>
+            <p class="error" id="signup-error"></p>
+            <p class="link" onclick="showLogin()">Already have an account? Login</p>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-form" class="hidden">
+            <h2>Login</h2>
+            <input type="text" id="login-username" placeholder="Username">
+            <input type="password" id="login-password" placeholder="Password">
+            <button onclick="validateLogin()">Login</button>
+            <p class="error" id="login-error"></p>
+            <p class="link" onclick="showForgotPassword()">Forgot Password?</p>
+            <p class="link" onclick="showSignup()">Create a New Account</p>
+        </div>
+
+        <!-- Forgot Password Form -->
+        <div id="forgot-form" class="hidden">
+            <h2>Reset Password</h2>
+            <input type="text" id="forgot-username" placeholder="Enter Your Username">
+            <button onclick="resetPassword()">Reset Password</button>
+            <p class="error" id="forgot-error"></p>
+            <p class="link" onclick="showLogin()">Back to Login</p>
+        </div>
+    </div>
+
+    <script>
+        // Load users from localStorage when the page loads
+let users = JSON.parse(localStorage.getItem("users")) || {};
+
+// Function to register a user
+function registerUser() {
+    let username = document.getElementById("signup-username").value.trim();
+    let password = document.getElementById("signup-password").value.trim();
+    let errorMsg = document.getElementById("signup-error");
+
+    if (!username || !password) {
+        errorMsg.textContent = "Please fill in all fields.";
+        return;
+    }
+
+    if (username === password) {
+        errorMsg.textContent = "Username and password cannot be the same.";
+        return;
+    }
+
+    if (!isStrongPassword(password)) {
+        errorMsg.textContent = "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.";
+        return;
+    }
+
+    if (users[username]) {
+        errorMsg.textContent = "Username already exists.";
+    } else {
+        users[username] = password;
+        localStorage.setItem("users", JSON.stringify(users)); // Save to localStorage
+        alert("Account created successfully!");
+        showLogin();
+    }
+}
+
+// Function to validate login
+function validateLogin() {
+    let username = document.getElementById("login-username").value.trim();
+    let password = document.getElementById("login-password").value.trim();
+    let errorMsg = document.getElementById("login-error");
+
+    if (!username || !password) {
+        errorMsg.textContent = "Please enter both fields.";
+        return;
+    }
+
+    if (users[username] && users[username] === password) {
+        alert("Login successful!");
+        localStorage.setItem("loggedInUser", username); // Save logged-in user
+        window.location.href = "manoys_burger_station.html"; // Redirect
+    } else {
+        errorMsg.textContent = "Invalid username or password.";
+    }
+}
+
+// Function to reset password
+function resetPassword() {
+    let username = document.getElementById("forgot-username").value.trim();
+    let errorMsg = document.getElementById("forgot-error");
+
+    if (!username) {
+        errorMsg.textContent = "Please enter your username.";
+        return;
+    }
+
+    if (users[username]) {
+        let newPassword = prompt("Enter a new password:");
+        if (newPassword) {
+            if (username === newPassword) {
+                alert("New password cannot be the same as the username.");
+                return;
+            }
+            if (!isStrongPassword(newPassword)) {
+                alert("Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.");
+                return;
+            }
+            users[username] = newPassword;
+            localStorage.setItem("users", JSON.stringify(users)); // Update localStorage
+            alert("Password reset successful!");
+            showLogin();
+        }
+    } else {
+        errorMsg.textContent = "Account not found. Please sign up first.";
+    }
+}
+
+// Function to log out
+function logout() {
+    alert("Logging out...");
+    localStorage.removeItem("loggedInUser"); // Remove logged-in user
+    window.location.href = "index.html"; // Redirect to login page
+}
+
+// Function to check if the user is logged in
+function checkLoginStatus() {
+    let loggedInUser = localStorage.getItem("loggedInUser");
+    if (!loggedInUser) {
+        alert("You must be logged in!");
+        window.location.href = "index.html"; // Redirect to login if not logged in
+    }
+}
+
+// Function to check password strength
+function isStrongPassword(password) {
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return strongPasswordRegex.test(password);
+}
+
+// Functions to toggle forms
+function showSignup() {
+    document.getElementById("signup-form").classList.remove("hidden");
+    document.getElementById("login-form").classList.add("hidden");
+    document.getElementById("forgot-form").classList.add("hidden");
+}
+
+function showLogin() {
+    document.getElementById("login-form").classList.remove("hidden");
+    document.getElementById("signup-form").classList.add("hidden");
+    document.getElementById("forgot-form").classList.add("hidden");
+}
+
+function showForgotPassword() {
+    document.getElementById("forgot-form").classList.remove("hidden");
+    document.getElementById("login-form").classList.add("hidden");
+    document.getElementById("signup-form").classList.add("hidden");
+}
+    </script>
+    
+    
+</body>
+</html>
